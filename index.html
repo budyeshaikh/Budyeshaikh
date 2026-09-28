@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budyeshaikh Arcade & Mega Games</title>
+  <meta name="description" content="Play authentic arcade Snake, Brick Breaker with real drop power-ups, Speed Clicker, and Wordie.">
+  <meta name="keywords" content="budyeshaikh, umarkhan, fatimasgame, omarahmad, ifoma, breakout, snake, wordie">
+  <meta name="author" content="Budyeshaikh">
+
+  <style>
+    :root {
+      --bg: #12110f;
+      --panel: #1e1d1a;
+      --card: #292825;
+      --accent: #81b64c;
+      --accent-hover: #a3d160;
+      --blue: #3692e7;
+      --yellow: #f7c04a;
+      --red: #e05353;
+      --purple: #cba6f7;
+      --text: #ededed;
+      --subtext: #a0a0a0;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 720px; background: var(--panel); border-radius: 14px; padding: 22px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #33312c; }
+    h1, h2, h3, h4 { text-align: center; color: var(--accent); margin: 0 0 15px 0; }
+
+    /* Top Stats */
+    .status-bar { display: flex; justify-content: space-between; background: var(--card); padding: 12px 18px; border-radius: 10px; font-weight: bold; margin-bottom: 16px; border: 1px solid #3d3b37; }
+    .nav-tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+    button { background: var(--card); color: var(--text); border: 1px solid #45433f; padding: 9px 13px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.15s; font-size: 13px; }
+    button:hover { background: #3d3b37; }
+    button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-green { background: var(--accent); color: #fff; border: none; }
+    .btn-green:hover { background: var(--accent-hover); }
+
+    .game-section { display: none; }
+    .game-section.active { display: block; }
+    input[type="text"], input[type="number"], select { width: 100%; max-width: 250px; padding: 9px; border-radius: 6px; border: 1px solid #45433f; background: #181715; color: var(--text); font-size: 14px; text-align: center; margin: 8px 0; }
+
+    /* Store items */
+    .store-category { margin: 18px 0 10px 0; font-size: 14px; color: var(--yellow); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-bottom: 1px solid #45433f; padding-bottom: 4px; }
+    .store-item { background: var(--card); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border: 1px solid #3d3b37; }
+    .store-item small { color: var(--subtext); }
+
+    /* Wordie tiles */
+    .wordie-container { display: flex; flex-direction: column; align-items: center; }
+    .wordie-grid { display: flex; flex-direction: column; gap: 6px; margin: 15px auto; width: max-content; }
+    .wordie-row { display: flex; gap: 6px; }
+    .tile { width: 44px; height: 44px; border: 2px solid #45433f; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; text-transform: uppercase; border-radius: 4px; }
+    .tile.small { width: 38px; height: 38px; font-size: 17px; }
+    .tile.correct { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tile.present { background: var(--yellow); color: #111; border-color: var(--yellow); }
+    .tile.absent { background: #45433f; color: var(--text); }
+
+    /* Speed Clicker */
+    .clicker-box { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 10px; }
+    .click-target { width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #81b64c 0%, #4d7c23 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 6px solid #a3d160; cursor: pointer; user-select: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5); transition: transform 0.05s ease-out; }
+    .click-target:active { transform: scale(0.93); border-color: var(--yellow); }
+    .click-counter { font-size: 48px; font-weight: 900; color: #fff; margin: 0; line-height: 1; }
+    .click-label { font-size: 13px; font-weight: bold; color: rgba(255,255,255,0.85); text-transform: uppercase; margin-top: 6px; }
+    .clicker-stats { display: flex; gap: 20px; font-size: 15px; font-weight: bold; background: var(--card); padding: 10px 20px; border-radius: 8px; border: 1px solid #3d3b37; }
+
+    /* Canvas styling */
+    .canvas-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    canvas { background: #0c0b0a; border: 3px solid #3d3b37; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.8); max-width: 100%; }
+    .touch-controls { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+    .touch-btn { width: 75px; height: 42px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎮 BUDYESHAIKH ARCADE 🎮</h1>
+
+  <!-- Global Header -->
+  <div class="status-bar">
+    <span id="player-disp">👤 Player: Guest</span>
+    <span id="coins-disp">🪙 Coins: 50</span>
+    <span id="score-disp">⭐ Score: 0</span>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('profile', event)">Profile & Key</button>
+    <button class="tab-btn" onclick="switchTab('breakout', event)">🧱 Breakout</button>
+    <button class="tab-btn" onclick="switchTab('snake', event)">🐍 Snake</button>
+    <button class="tab-btn" onclick="switchTab('wordie', event)">🔤 Wordie</button>
+    <button class="tab-btn" onclick="switchTab('clicker', event)">⚡ Clicker</button>
+    <button class="tab-btn" onclick="switchTab('number', event)">Number Guesser</button>
+    <button class="tab-btn" onclick="switchTab('store', event)">🛒 Store</button>
+  </div>
+
+  <!-- 1. PROFILE & SECRET KEYS -->
+  <div id="profile" class="game-section active">
+    <h3>Player Account</h3>
+    <input type="text" id="player-input" placeholder="Enter nickname">
+    <br><button class="btn-green" onclick="saveName()">Save Nickname</button>
+    <hr style="border: 0.5px solid #3d3b37; margin: 20px 0;">
+    <h3>🔑 Secret Key Redeem</h3>
+    <p style="color: var(--subtext); font-size: 14px;">Enter a promo code or secret key below:</p>
+    <input type="text" id="secret-key-input" placeholder="Enter Secret Key">
+    <br><button onclick="redeemSecretKey()" style="background: var(--yellow); color: #111;">Redeem Code</button>
+    <p id="key-msg" style="margin-top: 10px; font-weight: bold;"></p>
+  </div>
+
+  <!-- 2. UPGRADED BRICK BREAKER (BREAKOUT) -->
+  <div id="breakout" class="game-section">
+    <h3>🧱 Arkanoid Breakout Arcade</h3>
+    <div style="display:flex; justify-content:space-around; width:100%; max-width:440px; margin:0 auto 10px; font-size:14px; font-weight:bold;">
+      <span>❤️ Lives: <span id="breakout-lives" style="color:var(--red);">3</span></span>
+      <span>🧱 Score: <span id="breakout-score" style="color:var(--accent);">0</span></span>
+      <span>⭐ High: <span id="breakout-best" style="color:var(--yellow);">0</span></span>
+      <button class="btn-green" style="padding:4px 10px; font-size:12px;" onclick="startBreakoutGame()">Start / Restart</button>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="breakout-canvas" width="420" height="380"></canvas>
+      <div class="touch-controls">
+        <button class="touch-btn" onmousedown="breakoutMoveLeft=true" onmouseup="breakoutMoveLeft=false" ontouchstart="breakoutMoveLeft=true" ontouchend="breakoutMoveLeft=false">⬅️ Left</button>
+        <button class="touch-btn" onmousedown="breakoutMoveRight=true" onmouseup="breakoutMoveRight=false" ontouchstart="breakoutMoveRight=true" ontouchend="breakoutMoveRight=false">Right ➡️</button>
+      </div>
+      <small style="color:var(--subtext);">Move paddle with Mouse Drag, A/D, or Arrow Keys. Catch falling power-up pills!</small>
+    </div>
+  </div>
+
+  <!-- 3. UPGRADED SNAKE GAME -->
+  <div id="snake" class="game-section">
+    <h3>🐍 Authentic Arcade Snake</h3>
+    <div style="display:flex; justify-content:space-around; width:100%; max-width:400px; margin:0 auto 10px; font-size:14px; font-weight:bold;">
+      <span>🍎 Apples: <span id="snake-score" style="color:var(--accent);">0</span></span>
+      <span>🏆 Best: <span id="snake-best" style="color:var(--yellow);">0</span></span>
+      <button class="btn-green" style="padding:4px 10px; font-size:12px;" onclick="startSnakeGame()">Start / Restart</button>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="snake-canvas" width="380" height="380"></canvas>
+      <div style="display:grid; grid-template-columns: repeat(3, 50px); gap: 6px; justify-content: center; margin-top: 4px;">
+        <div></div>
+        <button style="height:42px;" onclick="queueSnakeDir('UP')">⬆️</button>
+        <div></div>
+        <button style="height:42px;" onclick="queueSnakeDir('LEFT')">⬅️</button>
+        <button style="height:42px;" onclick="queueSnakeDir('DOWN')">⬇️</button>
+        <button style="height:42px;" onclick="queueSnakeDir('RIGHT')">➡️</button>
+      </div>
+      <small style="color:var(--subtext);">Use Arrow Keys or WASD (Smooth input buffer enabled)</small>
+    </div>
+  </div>
+
+  <!-- 4. MULTI-MODE WORDIE -->
+  <div id="wordie" class="game-section">
+    <h3>🔤 Wordie Multi-Length Arena</h3>
+    <div style="text-align: center; margin-bottom: 10px;">
+      <label style="font-weight: bold; font-size: 13px;">Word Length: </label>
+      <select id="wordie-mode-select" onchange="initWordie()" style="max-width: 170px; padding: 6px;">
+        <option value="3">3 Letters (Blitz)</option>
+        <option value="5" selected>5 Letters (Classic)</option>
+        <option value="7">7 Letters (Master)</option>
+      </select>
+    </div>
+
+    <div class="wordie-container">
+      <div style="display:flex; justify-content: space-between; width: 100%; max-width: 380px; font-size:14px; margin-bottom:8px;">
+        <span id="wordie-lives">❤️ Lives: ❤️ ❤️</span>
+        <span id="wordie-attempts">Guesses: 0/6</span>
+      </div>
+      <div class="wordie-grid" id="wordie-board"></div>
+      <input type="text" id="word-input" placeholder="Enter Guess" style="text-transform: uppercase;">
+      <div style="margin-top: 5px;">
+        <button class="btn-green" onclick="submitWordGuess()">Guess Word</button>
+        <button onclick="initWordie()" style="margin-left: 8px;">New Word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. SPEED CLICKER -->
+  <div id="clicker" class="game-section">
+    <h3>⚡ Speed Clicker (CPS Arena)</h3>
+    <div style="text-align: center; margin-bottom: 12px;">
+      <label style="font-weight: bold; font-size: 13px;">Time Limit: </label>
+      <select id="timer-select" onchange="resetClicker()" style="max-width: 140px; padding: 6px;">
+        <option value="5">5 Seconds</option>
+        <option value="10" selected>10 Seconds</option>
+        <option value="30">30 Seconds</option>
+      </select>
+      <button onclick="resetClicker()" style="padding: 6px 12px; margin-left: 8px;">Reset</button>
+    </div>
+
+    <div class="clicker-box">
+      <div class="clicker-stats">
+        <span>⏱️ Time: <span id="timer-disp" style="color: var(--yellow);">10.0s</span></span>
+        <span>⚡ CPS: <span id="cps-disp" style="color: var(--blue);">0.0</span></span>
+        <span>🏆 Record: <span id="record-disp" style="color: var(--accent);">0</span></span>
+      </div>
+
+      <div id="click-btn" class="click-target" onclick="handleClick()">
+        <p id="click-number" class="click-counter">0</p>
+        <span id="click-prompt" class="click-label">Click To Start!</span>
+      </div>
+
+      <p id="clicker-boost-note" style="color: var(--yellow); font-size: 13px; font-weight: bold; margin: 0;"></p>
+      <p id="clicker-msg" style="color: var(--subtext); font-size: 14px; text-align: center; min-height: 20px;"></p>
+    </div>
+  </div>
+
+  <!-- 6. NUMBER GUESSER -->
+  <div id="number" class="game-section">
+    <h3>🔢 Secret Number Guesser (1 to 50)</h3>
+    <input type="number" id="num-guess-input" min="1" max="50" placeholder="1 - 50">
+    <br><button class="btn-green" onclick="submitNumberGuess()">Submit Guess</button>
+    <p id="num-feedback" style="font-weight: bold; margin-top: 15px; color: var(--yellow);">Make your first guess!</p>
+  </div>
+
+  <!-- 7. MEGA STORE -->
+  <div id="store" class="game-section">
+    <h3>🛒 Arcade Power-Up & Clue Store</h3>
+    <p id="store-banner" style="color: var(--yellow); text-align: center;">Use earned coins to grab clues and boosts!</p>
+
+    <!-- Brick Breaker Boosts -->
+    <div class="store-category">🧱 Brick Breaker Power-Ups</div>
+    <div class="store-item">
+      <div><strong>Wide Paddle Upgrade</strong><br><small>Widens your paddle by +40% for the next match</small></div>
+      <button class="btn-green" onclick="buyBreakoutPaddle(35)">Buy: 35 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Multi-Ball Surge</strong><br><small>Starts your next round with 2 balls at once</small></div>
+      <button class="btn-green" onclick="buyBreakoutMultiBall(55)">Buy: 55 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Slow-Motion Control</strong><br><small>Reduces ball speed by 30% for easier rebounds</small></div>
+      <button class="btn-green" onclick="buyBreakoutSlowBall(30)">Buy: 30 🪙</button>
+    </div>
+
+    <!-- Snake Boosts -->
+    <div class="store-category">🐍 Snake Arcade Power-Ups</div>
+    <div class="store-item">
+      <div><strong>Ghost Wall Phasing</strong><br><small>Allows you to pass through boundaries safely</small></div>
+      <button class="btn-green" onclick="buySnakeGhost(50)">Buy: 50 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Golden Apple Feast</strong><br><small>Next apple eaten rewards +50 extra arcade coins</small></div>
+      <button class="btn-green" onclick="buySnakeBoost(40)">Buy: 40 🪙</button>
+    </div>
+
+    <!-- Wordie Boosts -->
+    <div class="store-category">🔤 Wordie Upgrades & Clues</div>
+    <div class="store-item">
+      <div><strong>Super Clue: First & Last</strong><br><small>Unveils both the starting and ending letters</small></div>
+      <button class="btn-green" onclick="buyWordieSuperClue(65)">Buy: 65 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Random Letter Clue</strong><br><small>Reveals one letter hidden inside the active word</small></div>
+      <button class="btn-green" onclick="buyWordieClue('random', 35)">Buy: 35 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Extra Life Heart (+1)</strong><br><small>Restores 1 heart to survive invalid word inputs</small></div>
+      <button class="btn-green" onclick="buyWordieLife(30)">Buy: 30 🪙</button>
+    </div>
+
+    <!-- Clicker Boosts -->
+    <div class="store-category">⚡ Speed Clicker Boosters</div>
+    <div class="store-item">
+      <div><strong>Double Tap Power-Up (2x)</strong><br><small>Every tap counts as 2 clicks in your next round</small></div>
+      <button class="btn-green" onclick="buyClickMultiplier(60)">Buy: 60 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Time Freeze (+3 Seconds)</strong><br><small>Adds +3 bonus seconds to your next test timer</small></div>
+      <button class="btn-green" onclick="buyClickTimeBonus(45)">Buy: 45 🪙</button>
+    </div>
+
+    <!-- Number Guesser Hints -->
+    <div class="store-category">🔢 Number Guesser Hints</div>
+    <div class="store-item">
+      <div><strong>Number: Odd or Even</strong><br><small>Tells if secret number is odd or even</small></div>
+      <button class="btn-green" onclick="buyHint('odd_even', 15)">Buy: 15 🪙</button>
+    </div>
+    <div class="store-item">
+      <div><strong>Number: 10-Block Range</strong><br><small>Narrow down to the correct decade block</small></div>
+      <button class="btn-green" onclick="buyHint('range', 25)">Buy: 25 🪙</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------------- SOUND FX (Synthesizer) ----------------
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'hit') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+    } else if (type === 'brick') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.09);
+    } else if (type === 'powerup') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(950, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+    } else if (type === 'eat') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    } else if (type === 'gameover') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+    }
+  }
+
+  // ---------------- USER STATE & CODES ----------------
+  let player = { 
+    name: "Guest", 
+    coins: 50, 
+    score: 0, 
+    secretUnlocked: false,
+    startingLives: 2,
+    clickMultiplier: 1,
+    clickExtraSeconds: 0,
+    goldenAppleActive: false,
+    snakeGhostActive: false,
+    breakoutWidePaddle: false,
+    breakoutMultiBall: false,
+    breakoutSlowBall: false
+  };
+
+  function updateHeader() {
+    document.getElementById("player-disp").innerText = `👤 Player: ${player.name}`;
+    document.getElementById("coins-disp").innerText = player.secretUnlocked ? `🪙 Coins: ∞ FREE` : `🪙 Coins: ${player.coins.toLocaleString()}`;
+    document.getElementById("score-disp").innerText = `⭐ Score: ${player.score.toLocaleString()}`;
+  }
+
+  function saveName() {
+    const val = document.getElementById("player-input").value.trim();
+    if (val) {
+      player.name = val;
+      updateHeader();
+      alert(`Welcome, ${player.name}!`);
+    }
+  }
+
+  function redeemSecretKey() {
+    const code = document.getElementById("secret-key-input").value.trim().toLowerCase();
+    const msg = document.getElementById("key-msg");
+
+    if (code === "budyeshaikh") {
+      player.secretUnlocked = true;
+      player.coins = 999999999;
+      updateHeader();
+      msg.style.color = "var(--accent)";
+      msg.innerText = "🎉 'budyeshaikh' activated! Infinite coins & all store items FREE!";
+      document.getElementById("store-banner").innerText = "👑 Budyeshaikh VIP: Everything is FREE!";
+    } 
+    else if (code === "umarkhan") {
+      player.secretUnlocked = true;
+      player.coins += 100000;
+      updateHeader();
+      msg.style.color = "var(--yellow)";
+      msg.innerText = "👑 'umarkhan' VIP activated! +100,000 Coins added & free store privileges unlocked!";
+      document.getElementById("store-banner").innerText = "⭐ Umar Khan VIP: Free Store Active!";
+    } 
+    else if (code === "freecoins") {
+      player.coins += 50000;
+      updateHeader();
+      msg.style.color = "var(--accent)";
+      msg.innerText = "💰 Bonus unlocked! +50,000 Free Coins added to balance!";
+    }
+    else if (code === "fatimasgame") {
+      player.secretUnlocked = true;
+      player.coins += 75000;
+      player.score += 1000;
+      updateHeader();
+      msg.style.color = "var(--yellow)";
+      msg.innerText = "🌸 'fatimasgame' VIP activated! +75,000 Coins, +1,000 Score & FREE items!";
+      document.getElementById("store-banner").innerText = "🌸 Fatima's VIP: All Store Items Free!";
+    }
+    else if (code === "omarahmad") {
+      player.coins += 120000;
+      updateHeader();
+      msg.style.color = "var(--blue)";
+      msg.innerText = "⚡ 'omarahmad' Champion Key! +120,000 Coins added to wallet!";
+    }
+    else if (code === "ifoma") {
+      player.coins += 35000;
+      player.startingLives = 4;
+      updateHeader();
+      msg.style.color = "var(--accent)";
+      msg.innerText = "🛡️ 'ifoma' Shield Key! +35,000 Coins & Wordie lives doubled to 4!";
+      initWordie();
+    }
+    else {
+      msg.style.color = "var(--red)";
+      msg.innerText = "❌ Invalid key. Try again.";
+    }
+    document.getElementById("secret-key-input").value = "";
+  }
+
+  function switchTab(tabId, ev) {
+    document.querySelectorAll(".game-section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    if (ev) ev.currentTarget.classList.add("active");
+  }
+
+  // ---------------- UPGRADED BRICK BREAKER (ARKANOID STYLE) ----------------
+  const bCanvas = document.getElementById("breakout-canvas");
+  const bCtx = bCanvas.getContext("2d");
+
+  let bPaddleWidth = 85;
+  let bPaddleHeight = 12;
+  let bPaddleX = (bCanvas.width - bPaddleWidth) / 2;
+  let breakoutMoveLeft = false;
+  let breakoutMoveRight = false;
+
+  let balls = [];
+  let breakoutDrops = [];
+  let breakoutParticles = [];
+  let breakoutScore = 0;
+  let breakoutLives = 3;
+  let breakoutBest = 0;
+  let breakoutLoop = null;
+  let breakoutRunning = false;
+
+  const brickRows = 5;
+  const brickCols = 7;
+  const brickWidth = 50;
+  const brickHeight = 18;
+  const brickPadding = 6;
+  const brickOffsetTop = 32;
+  const brickOffsetLeft = 17;
+  const brickPalette = ["#E05353", "#F7C04A", "#81B64C", "#3692E7", "#CBA6F7"];
+  let bricks = [];
+
+  function initBricks() {
+    bricks = [];
+    for (let c = 0; c < brickCols; c++) {
+      bricks[c] = [];
+      for (let r = 0; r < brickRows; r++) {
+        // Top row bricks have 2 hits, others have 1
+        const maxHp = r === 0 ? 2 : 1;
+        bricks[c][r] = { x: 0, y: 0, hp: maxHp, maxHp: maxHp, color: brickPalette[r] };
+      }
+    }
+  }
+
+  function startBreakoutGame() {
+    cancelAnimationFrame(breakoutLoop);
+    bPaddleWidth = player.breakoutWidePaddle ? 120 : 85;
+    bPaddleX = (bCanvas.width - bPaddleWidth) / 2;
+    breakoutScore = 0;
+    breakoutLives = 3;
+    breakoutDrops = [];
+    breakoutParticles = [];
+    document.getElementById("breakout-score").innerText = breakoutScore;
+    document.getElementById("breakout-lives").innerText = breakoutLives;
+    initBricks();
+
+    const speedMod = player.breakoutSlowBall ? 0.75 : 1;
+    balls = [{ 
+      x: bCanvas.width / 2, 
+      y: bCanvas.height - 35, 
+      dx: 2.8 * speedMod, 
+      dy: -3.2 * speedMod, 
+      radius: 6,
+      trail: []
+    }];
+
+    if (player.breakoutMultiBall) {
+      balls.push({ 
+        x: bCanvas.width / 2 + 20, 
+        y: bCanvas.height - 35, 
+        dx: -2.8 * speedMod, 
+        dy: -3.2 * speedMod, 
+        radius: 6,
+        trail: []
+      });
+    }
+
+    player.breakoutWidePaddle = false;
+    player.breakoutMultiBall = false;
+    player.breakoutSlowBall = false;
+
+    breakoutRunning = true;
+    updateBreakout();
+  }
+
+  function spawnBreakoutParticles(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      breakoutParticles.push({
+        x: x, y: y,
+        dx: (Math.random() - 0.5) * 6,
+        dy: (Math.random() - 0.5) * 6,
+        radius: Math.random() * 3 + 1,
+        color: color,
+        life: 25
+      });
+    }
+  }
+
+  function spawnPowerupDrop(x, y) {
+    if (Math.random() < 0.28) { // 28% drop rate
+      const types = ['W', 'M', 'S', 'L'];
+      const chosen = types[Math.floor(Math.random() * types.length)];
+      breakoutDrops.push({ x: x + brickWidth / 2, y: y, type: chosen, dy: 1.8 });
+    }
+  }
+
+  function updateBreakout() {
+    if (!breakoutRunning) return;
+
+    // Controls
+    if (breakoutMoveLeft && bPaddleX > 0) bPaddleX -= 6;
+    if (breakoutMoveRight && bPaddleX < bCanvas.width - bPaddleWidth) bPaddleX += 6;
+
+    // Render Canvas Background
+    bCtx.fillStyle = "#0c0b0a";
+    bCtx.fillRect(0, 0, bCanvas.width, bCanvas.height);
+
+    // Subtle background grid
+    bCtx.strokeStyle = "rgba(255,255,255,0.03)";
+    bCtx.lineWidth = 1;
+    for (let x = 0; x < bCanvas.width; x += 20) {
+      bCtx.beginPath(); bCtx.moveTo(x, 0); bCtx.lineTo(x, bCanvas.height); bCtx.stroke();
+    }
+
+    // Render Bricks with 3D bevels
+    let remainingBricks = 0;
+    for (let c = 0; c < brickCols; c++) {
+      for (let r = 0; r < brickRows; r++) {
+        const b = bricks[c][r];
+        if (b.hp > 0) {
+          remainingBricks++;
+          const bx = c * (brickWidth + brickPadding) + brickOffsetLeft;
+          const by = r * (brickHeight + brickPadding) + brickOffsetTop;
+          b.x = bx; b.y = by;
+
+          // Main brick body
+          bCtx.fillStyle = b.color;
+          bCtx.fillRect(bx, by, brickWidth, brickHeight);
+
+          // 3D Bevel highlight
+          bCtx.fillStyle = "rgba(255,255,255,0.35)";
+          bCtx.fillRect(bx, by, brickWidth, 3);
+          bCtx.fillRect(bx, by, 3, brickHeight);
+
+          // 3D Bevel shadow
+          bCtx.fillStyle = "rgba(0,0,0,0.45)";
+          bCtx.fillRect(bx, by + brickHeight - 3, brickWidth, 3);
+          bCtx.fillRect(bx + brickWidth - 3, by, 3, brickHeight);
+
+          // Multi-hit indicator
+          if (b.hp > 1) {
+            bCtx.fillStyle = "#FFF";
+            bCtx.fillRect(bx + brickWidth / 2 - 2, by + brickHeight / 2 - 2, 4, 4);
+          }
+        }
+      }
+    }
+
+    // Particles
+    for (let i = breakoutParticles.length - 1; i >= 0; i--) {
+      const p = breakoutParticles[i];
+      p.x += p.dx;
+      p.y += p.dy;
+      p.life--;
+      bCtx.fillStyle = p.color;
+      bCtx.beginPath();
+      bCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      bCtx.fill();
+      if (p.life <= 0) breakoutParticles.splice(i, 1);
+    }
+
+    // Power-Up Drops
+    for (let i = breakoutDrops.length - 1; i >= 0; i--) {
+      const drop = breakoutDrops[i];
+      drop.y += drop.dy;
+
+      // Draw Pill Capsule
+      bCtx.fillStyle = drop.type === 'W' ? '#81b64c' : (drop.type === 'M' ? '#3692e7' : (drop.type === 'L' ? '#e05353' : '#f7c04a'));
+      bCtx.beginPath();
+      bCtx.roundRect(drop.x - 12, drop.y, 24, 14, 6);
+      bCtx.fill();
+      bCtx.fillStyle = "#111";
+      bCtx.font = "bold 10px sans-serif";
+      bCtx.textAlign = "center";
+      bCtx.fillText(drop.type, drop.x, drop.y + 11);
+
+      // Paddle Catch Power-Up
+      if (drop.y + 14 >= bCanvas.height - bPaddleHeight - 6 &&
+          drop.y <= bCanvas.height - 6 &&
+          drop.x >= bPaddleX && drop.x <= bPaddleX + bPaddleWidth) {
+        playSound('powerup');
+        if (drop.type === 'W') bPaddleWidth = Math.min(150, bPaddleWidth + 25);
+        if (drop.type === 'L') { breakoutLives++; document.getElementById("breakout-lives").innerText = breakoutLives; }
+        if (drop.type === 'M' && balls.length > 0) {
+          balls.push({ x: balls[0].x, y: balls[0].y, dx: -balls[0].dx, dy: balls[0].dy, radius: 6, trail: [] });
+        }
+        if (drop.type === 'S') {
+          balls.forEach(b => { b.dx *= 0.85; b.dy *= 0.85; });
+        }
+        breakoutDrops.splice(i, 1);
+        continue;
+      }
+
+      if (drop.y > bCanvas.height) breakoutDrops.splice(i, 1);
+    }
+
+    // Render Metallic Paddle
+    const gradient = bCtx.createLinearGradient(bPaddleX, 0, bPaddleX + bPaddleWidth, 0);
+    gradient.addColorStop(0, '#546E7A');
+    gradient.addColorStop(0.5, '#CFD8DC');
+    gradient.addColorStop(1, '#546E7A');
+    bCtx.fillStyle = gradient;
+    bCtx.beginPath();
+    bCtx.roundRect(bPaddleX, bCanvas.height - bPaddleHeight - 6, bPaddleWidth, bPaddleHeight, 5);
+    bCtx.fill();
+
+    // Red safety caps on paddle ends
+    bCtx.fillStyle = "#E05353";
+    bCtx.fillRect(bPaddleX, bCanvas.height - bPaddleHeight - 6, 6, bPaddleHeight);
+    bCtx.fillRect(bPaddleX + bPaddleWidth - 6, bCanvas.height - bPaddleHeight - 6, 6, bPaddleHeight);
+
+    // Update Balls
+    for (let i = balls.length - 1; i >= 0; i--) {
+      const ball = balls[i];
+
+      // Draw Ball Trail
+      ball.trail.push({ x: ball.x, y: ball.y });
+      if (ball.trail.length > 5) ball.trail.shift();
+      ball.trail.forEach((t, idx) => {
+        bCtx.fillStyle = `rgba(255, 255, 255, ${0.1 * (idx + 1)})`;
+        bCtx.beginPath();
+        bCtx.arc(t.x, t.y, ball.radius * (idx / 5), 0, Math.PI * 2);
+        bCtx.fill();
+      });
+
+      // Draw Glowing Ball
+      bCtx.fillStyle = "#FFF";
+      bCtx.beginPath();
+      bCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      bCtx.fill();
+
+      // Wall Bounce
+      if (ball.x + ball.dx > bCanvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+        ball.dx = -ball.dx;
+        playSound('hit');
+      }
+      if (ball.y + ball.dy < ball.radius) {
+        ball.dy = -ball.dy;
+        playSound('hit');
+      }
+
+      // Authentic Paddle Angular Rebound
+      if (ball.y + ball.dy > bCanvas.height - bPaddleHeight - 8 - ball.radius &&
+          ball.y + ball.dy < bCanvas.height - 4 &&
+          ball.x >= bPaddleX - ball.radius && ball.x <= bPaddleX + bPaddleWidth + ball.radius) {
+        
+        // Calculate hit position from -1 (far left) to 1 (far right)
+        const hitPoint = (ball.x - (bPaddleX + bPaddleWidth / 2)) / (bPaddleWidth / 2);
+        const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+        const maxAngle = (75 * Math.PI) / 180; // 75 degrees maximum bounce
+        const bounceAngle = hitPoint * maxAngle;
+
+        ball.dx = currentSpeed * Math.sin(bounceAngle);
+        ball.dy = -currentSpeed * Math.cos(bounceAngle);
+        playSound('hit');
+      }
+
+      // Brick Collision
+      for (let c = 0; c < brickCols; c++) {
+        for (let r = 0; r < brickRows; r++) {
+          const b = bricks[c][r];
+          if (b.hp > 0) {
+            if (ball.x > b.x && ball.x < b.x + brickWidth && ball.y > b.y && ball.y < b.y + brickHeight) {
+              ball.dy = -ball.dy;
+              b.hp--;
+              playSound('brick');
+              spawnBreakoutParticles(ball.x, ball.y, b.color);
+
+              if (b.hp === 0) {
+                breakoutScore += 10;
+                document.getElementById("breakout-score").innerText = breakoutScore;
+                player.coins += 2;
+                player.score += 10;
+                updateHeader();
+                spawnPowerupDrop(b.x, b.y);
+              }
+            }
+          }
+        }
+      }
+
+      // Ball Out of Bottom
+      if (ball.y + ball.dy > bCanvas.height) {
+        balls.splice(i, 1);
+        if (balls.length === 0) {
+          breakoutLives--;
+          document.getElementById("breakout-lives").innerText = breakoutLives;
+          if (breakoutLives > 0) {
+            balls.push({ x: bCanvas.width / 2, y: bCanvas.height - 35, dx: 2.8, dy: -3.2, radius: 6, trail: [] });
+          } else {
+            playSound('gameover');
+            if (breakoutScore > breakoutBest) {
+              breakoutBest = breakoutScore;
+              document.getElementById("breakout-best").innerText = breakoutBest;
+            }
+            alert(`💥 Game Over! You scored ${breakoutScore} in Breakout.`);
+            breakoutRunning = false;
+            return;
+          }
+        }
+      }
+
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+    }
+
+    // Win condition check
+    if (remainingBricks === 0) {
+      playSound('powerup');
+      alert(`🎉 VICTORY! You smashed all bricks!\n+60 Coins & +200 Score!`);
+      player.coins += 60;
+      player.score += 200;
+      updateHeader();
+      startBreakoutGame();
+      return;
+    }
+
+    breakoutLoop = requestAnimationFrame(updateBreakout);
+  }
+
+  // Smooth mouse paddle tracking
+  bCanvas.addEventListener("mousemove", e => {
+    const rect = bCanvas.getBoundingClientRect();
+    const relativeX = e.clientX - rect.left;
+    if (relativeX > 0 && relativeX < bCanvas.width) {
+      bPaddleX = Math.max(0, Math.min(bCanvas.width - bPaddleWidth, relativeX - bPaddleWidth / 2));
+    }
+  });
+
+  // ---------------- UPGRADED SNAKE (NOKIA / RETRO ARCADE STYLE) ----------------
+  const sCanvas = document.getElementById("snake-canvas");
+  const sCtx = sCanvas.getContext("2d");
+  const sGrid = 19;
+  const sTiles = sCanvas.width / sGrid;
+
+  let snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+  let sFood = { x: 5, y: 5 };
+  let sDir = { x: 1, y: 0 };
+  let dirQueue = [];
+  let snakeScore = 0;
+  let snakeBest = 0;
+  let snakeInterval = null;
+  let snakeRunning = false;
+  let snakeParticles = [];
+
+  function startSnakeGame() {
+    clearInterval(snakeInterval);
+    snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+    sDir = { x: 1, y: 0 };
+    dirQueue = [];
+    snakeScore = 0;
+    snakeParticles = [];
+    document.getElementById("snake-score").innerText = snakeScore;
+    spawnSnakeFood();
+    snakeRunning = true;
+    snakeInterval = setInterval(updateSnake, 100);
+  }
+
+  function spawnSnakeFood() {
+    let valid = false;
+    while (!valid) {
+      sFood.x = Math.floor(Math.random() * sTiles);
+      sFood.y = Math.floor(Math.random() * sTiles);
+      valid = !snake.some(segment => segment.x === sFood.x && segment.y === sFood.y);
+    }
+  }
+
+  function queueSnakeDir(dir) {
+    if (!snakeRunning) return;
+    const lastDir = dirQueue.length > 0 ? dirQueue[dirQueue.length - 1] : sDir;
+
+    if (dir === 'UP' && lastDir.y === 0) dirQueue.push({ x: 0, y: -1 });
+    if (dir === 'DOWN' && lastDir.y === 0) dirQueue.push({ x: 0, y: 1 });
+    if (dir === 'LEFT' && lastDir.x === 0) dirQueue.push({ x: -1, y: 0 });
+    if (dir === 'RIGHT' && lastDir.x === 0) dirQueue.push({ x: 1, y: 0 });
+  }
+
+  function spawnSnakeParticles(x, y, color) {
+    for (let i = 0; i < 7; i++) {
+      snakeParticles.push({
+        x: x * sGrid + sGrid / 2,
+        y: y * sGrid + sGrid / 2,
+        dx: (Math.random() - 0.5) * 4,
+        dy: (Math.random() - 0.5) * 4,
+        radius: Math.random() * 2.5 + 1,
+        color: color,
+        life: 15
+      });
+    }
+  }
+
+  function updateSnake() {
+    if (dirQueue.length > 0) {
+      sDir = dirQueue.shift();
+    }
+
+    let headX = snake[0].x + sDir.x;
+    let headY = snake[0].y + sDir.y;
+
+    // Ghost Wall Mode
+    if (player.snakeGhostActive) {
+      if (headX < 0) headX = sTiles - 1;
+      else if (headX >= sTiles) headX = 0;
+      if (headY < 0) headY = sTiles - 1;
+      else if (headY >= sTiles) headY = 0;
+    } else {
+      if (headX < 0 || headX >= sTiles || headY < 0 || headY >= sTiles) {
+        endSnakeGame();
+        return;
+      }
+    }
+
+    const head = { x: headX, y: headY };
+
+    // Self Collision
+    for (let segment of snake) {
+      if (head.x === segment.x && head.y === segment.y) {
+        endSnakeGame();
+        return;
+      }
+    }
+
+    snake.unshift(head);
+
+    // Food Collision
+    if (head.x === sFood.x && head.y === sFood.y) {
+      snakeScore++;
+      document.getElementById("snake-score").innerText = snakeScore;
+      playSound('eat');
+      spawnSnakeParticles(sFood.x, sFood.y, player.goldenAppleActive ? "#F7C04A" : "#E05353");
+
+      let reward = 5;
+      if (player.goldenAppleActive) {
+        reward += 50;
+        player.goldenAppleActive = false;
+        alert("✨ Golden Apple Eaten! +50 Bonus Coins!");
+      }
+      player.coins += reward;
+      player.score += 15;
+      updateHeader();
+      spawnSnakeFood();
+    } else {
+      snake.pop();
+    }
+
+    drawSnake();
+  }
+
+  function drawSnake() {
+    // Checkerboard Garden Lawn
+    for (let r = 0; r < sTiles; r++) {
+      for (let c = 0; c < sTiles; c++) {
+        sCtx.fillStyle = (r + c) % 2 === 0 ? "#12140e" : "#171a13";
+        sCtx.fillRect(c * sGrid, r * sGrid, sGrid, sGrid);
+      }
+    }
+
+    // Particles
+    for (let i = snakeParticles.length - 1; i >= 0; i--) {
+      const p = snakeParticles[i];
+      p.x += p.dx;
+      p.y += p.dy;
+      p.life--;
+      sCtx.fillStyle = p.color;
+      sCtx.beginPath();
+      sCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      sCtx.fill();
+      if (p.life <= 0) snakeParticles.splice(i, 1);
+    }
+
+    // Draw Realistic Apple
+    const foodCenterX = sFood.x * sGrid + sGrid / 2;
+    const foodCenterY = sFood.y * sGrid + sGrid / 2;
+    sCtx.fillStyle = player.goldenAppleActive ? "#F7C04A" : "#E05353";
+    sCtx.beginPath();
+    sCtx.arc(foodCenterX, foodCenterY, sGrid / 2 - 2, 0, Math.PI * 2);
+    sCtx.fill();
+
+    // Apple Stem & Leaf
+    sCtx.fillStyle = "#8D6E63";
+    sCtx.fillRect(foodCenterX - 1, foodCenterY - sGrid / 2 + 1, 2, 4);
+    sCtx.fillStyle = "#81B64C";
+    sCtx.beginPath();
+    sCtx.arc(foodCenterX + 3, foodCenterY - sGrid / 2 + 2, 2.5, 0, Math.PI);
+    sCtx.fill();
+
+    // Draw Rounded Snake Body
+    snake.forEach((part, index) => {
+      const px = part.x * sGrid;
+      const py = part.y * sGrid;
+
+      if (index === 0) {
+        // Head
+        sCtx.fillStyle = player.snakeGhostActive ? "#CBA6F7" : "#A3D160";
+        sCtx.beginPath();
+        sCtx.roundRect(px + 1, py + 1, sGrid - 2, sGrid - 2, 6);
+        sCtx.fill();
+
+        // Eyes tracking motion
+        sCtx.fillStyle = "#FFF";
+        let eye1X = px + 5, eye1Y = py + 5;
+        let eye2X = px + sGrid - 7, eye2Y = py + 5;
+
+        if (sDir.x === 1) { eye1X = px + 11; eye1Y = py + 4; eye2X = px + 11; eye2Y = py + 12; }
+        if (sDir.x === -1) { eye1X = px + 5; eye1Y = py + 4; eye2X = px + 5; eye2Y = py + 12; }
+        if (sDir.y === 1) { eye1X = px + 4; eye1Y = py + 11; eye2X = px + 12; eye2Y = py + 11; }
+
+        sCtx.beginPath(); sCtx.arc(eye1X, eye1Y, 2.2, 0, Math.PI * 2); sCtx.fill();
+        sCtx.beginPath(); sCtx.arc(eye2X, eye2Y, 2.2, 0, Math.PI * 2); sCtx.fill();
+
+        sCtx.fillStyle = "#000";
+        sCtx.beginPath(); sCtx.arc(eye1X, eye1Y, 1.2, 0, Math.PI * 2); sCtx.fill();
+        sCtx.beginPath(); sCtx.arc(eye2X, eye2Y, 1.2, 0, Math.PI * 2); sCtx.fill();
+      } else {
+        // Body segments
+        sCtx.fillStyle = player.snakeGhostActive ? (index % 2 === 0 ? "#B48EAD" : "#987295") : (index % 2 === 0 ? "#81B64C" : "#72A343");
+        sCtx.beginPath();
+        sCtx.roundRect(px + 1.5, py + 1.5, sGrid - 3, sGrid - 3, 5);
+        sCtx.fill();
+      }
+    });
+  }
+
+  function endSnakeGame() {
+    clearInterval(snakeInterval);
+    snakeRunning = false;
+    player.snakeGhostActive = false;
+    playSound('gameover');
+    if (snakeScore > snakeBest) {
+      snakeBest = snakeScore;
+      document.getElementById("snake-best").innerText = snakeBest;
+    }
+    alert(`💥 Game Over! You ate ${snakeScore} apples and earned +${snakeScore * 5} coins!`);
+  }
+
+  // Key Listeners
+  window.addEventListener("keydown", e => {
+    if (["ArrowUp", "KeyW"].includes(e.code)) queueSnakeDir('UP');
+    if (["ArrowDown", "KeyS"].includes(e.code)) queueSnakeDir('DOWN');
+    if (["ArrowLeft", "KeyA"].includes(e.code)) { queueSnakeDir('LEFT'); breakoutMoveLeft = true; }
+    if (["ArrowRight", "KeyD"].includes(e.code)) { queueSnakeDir('RIGHT'); breakoutMoveRight = true; }
+  });
+
+  window.addEventListener("keyup", e => {
+    if (["ArrowLeft", "KeyA"].includes(e.code)) breakoutMoveLeft = false;
+    if (["ArrowRight", "KeyD"].includes(e.code)) breakoutMoveRight = false;
+  });
+
+  // ---------------- WORDIE ENGINE ----------------
+  const RAW_WORDS_3 = ["ACE","ACT","ADD","ADO","ADS","AFT","AGE","AGO","AID","AIM","AIR","ALE","ALL","AND","ANT","ANY","APE","APP","ARC","ARE","ARK","ARM","ART","ASH","ASK","ASP","ATE","AWE","AWL","AXE","AYE","BAD","BAG","BAN","BAR","BAT","BAY","BED","BEE","BEG","BET","BID","BIG","BIN","BIO","BIT","BOA","BOB","BOG","BOO","BOP","BOW","BOX","BOY","BRA","BRO","BUD","BUG","BUM","BUN","BUS","BUT","BUY","BYE","CAB","CAM","CAN","CAP","CAR","CAT","COB","COD","COG","COL","CON","COO","COP","COT","COW","COX","COY","CRY","CUB","CUE","CUP","CUR","CUT","DAD","DAM","DAN","DAY","DEB","DEN","DEW","DID","DIE","DIG","DIM","DIN","DIP","DOC","DOE","DOG","DON","DOT","DRY","DUB","DUE","DUG","DUO","DYE","EAR","EAT","EBB","EEL","EGG","EGO","ELF","ELK","ELM","EMU","END","ERA","EVE","EYE","FAD","FAN","FAR","FAT","FAX","FED","FEE","FEW","FIG","FIN","FIT","FIX","FLU","FLY","FOE","FOG","FOP","FOR","FOX","FRY","FUN","FUR","GAG","GAP","GAS","GAY","GEL","GEM","GET","GIG","GIN","GLAD","GNU","GOB","GOD","GOO","GOT","GUM","GUN","GUT","GUY","GYM","HAD","HAM","HAS","HAT","HAY","HEM","HEN","HER","HEW","HEX","HEY","HID","HIM","HIP","HIS","HIT","HOB","HOG","HOP","HOT","HOW","HUB","HUE","HUG","HUM","HUT","ICE","ICY","ILL","IMP","INK","INN","ION","IRE","IRK","IVY","JAB","JAM","JAR","JAW","JAY","JET","JIG","JOB","JOG","JOY","JUG","JUT","KEG","KEY","KID","KIN","KIP","KIT","LAB","LAD","LAG","LAP","LAW","LAY","LED","LEG","LET","LID","LIE","LIP","LIT","LOG","LOP","LOT","LOW","LUG","MAD","MAN","MAP","MAT","MAW","MAX","MAY","MEN","MET","MIA","MID","MIL","MIX","MOB","MOM","MOP","MOW","MUD","MUG","MUM","NAB","NAG","NAP","NAY","NET","NEW","NIB","NIL","NIP","NOD","NOR","NOT","NOW","NUN","NUT","OAF","OAK","OAR","OAT","ODD","ODE","OFF","OFT","OIL","OLD","ONE","OPT","ORB","ORE","OUR","OUT","OWL","OWN","PAD","PAL","PAN","PAR","PAT","PAW","PAY","PEA","PEG","PEN","PEP","PER","PET","PEW","PIE","PIG","PIN","PIP","PIT","PLY","POD","POP","POT","POW","PRO","PRY","PUB","PUG","PUN","PUP","PUS","PUT","RAG","RAM","RAN","RAP","RAT","RAW","RAY","RED","RIB","RID","RIG","RIM","RIP","ROB","ROD","ROE","ROT","ROW","RUB","RUG","RUM","RUN","RUT","RYE","SAD","SAG","SAP","SAT","SAW","SAX","SAY","SEA","SEE","SET","SEW","SEX","SHY","SIN","SIP","SIR","SIT","SIX","SKI","SKY","SLY","SOB","SOD","SON","SOP","SOW","SOY","SPA","SPY","STY","SUE","SUM","SUN","TAB","TAG","TAN","TAP","TAR","TAX","TEA","TED","TEE","TEN","THE","THY","TIC","TIE","TIN","TIP","TOE","TOG","TON","TOO","TOP","TOT","TOW","TOY","TRY","TUB","TUG","TWO","URN","USE","VAN","VAT","VET","VIA","VIE","VOW","WAG","WAR","WAS","WAX","WAY","WEB","WED","WEE","WET","WHO","WHY","WIG","WIN","WIT","WOE","WOK","WON","WOO","WOW","YAK","YAM","YAP","YAW","YEA","YES","YET","YEW","YON","YOU","ZAG","ZAP","ZED","ZEN","ZIG","ZIP","ZOO"];
+  const RAW_WORDS_5 = ["ABOUT","ABOVE","ACTOR","ACUTE","ADMIT","ADOPT","ADULT","AFTER","AGAIN","AGENT","AGREE","AHEAD","ALARM","ALBUM","ALERT","ALIKE","ALIVE","ALLOW","ALONE","ALONG","ALTER","AMONG","ANGER","ANGLE","ANGRY","APART","APPLE","APPLY","ARENA","ARGUE","ARISE","ARMOR","AROMA","ARRAY","ARROW","ASSET","AUDIO","AUDIT","AVOID","AWAKE","AWARE","BADGE","BAKER","BASIC","BASIS","BEACH","BEAST","BEGIN","BEING","BELOW","BENCH","BIRTH","BLACK","BLADE","BLAME","BLANK","BLAST","BLEND","BLESS","BLIND","BLOCK","BLOOD","BLOOM","BOARD","BOAST","BOOST","BOUND","BRAIN","BRAKE","BRAND","BRASS","BRAVE","BREAD","BREAK","BREED","BRICK","BRIDE","BRIEF","BRING","BRISK","BROAD","BROKE","BROWN","BRUSH","BUILD","BUNCH","BURST","CABLE","CANDY","CARGO","CARRY","CATCH","CAUSE","CHAIN","CHAIR","CHALK","CHAMP","CHANT","CHAOS","CHART","CHASE","CHEAP","CHECK","CHEEK","CHEER","CHEST","CHIEF","CHILD","CHILL","CHINA","CHOIR","CIVIL","CLAIM","CLASH","CLASS","CLEAN","CLEAR","CLERK","CLICK","CLIFF","CLIMB","CLOCK","CLOSE","CLOTH","CLOUD","COACH","COAST","COLOR","CORAL","COUCH","COUNT","COURT","COVER","CRACK","CRAFT","CRANE","CRASH","CRAWL","CRAZY","CREAM","CREEK","CRIME","CRISP","CROSS","CROWD","CROWN","CRUSH","CURVE","CYCLE","DAILY","DANCE","DREAM","DRIVE","EAGLE","EARLY","EARTH","EMPTY","ENEMY","ENJOY","ENTER","EQUAL","ERROR","EVENT","EVERY","EXACT","EXIST","EXTRA","FAITH","FALSE","FAULT","FIBER","FIELD","FIGHT","FINAL","FIRST","FLAME","FLASH","FLEET","FLOOR","FLOUR","FLUID","FOCUS","FORCE","FORTH","FOUND","FRAME","FRESH","FRONT","FRUIT","GIANT","GLASS","GLOBE","GLORY","GRACE","GRADE","GRAIN","GRAND","GRAPE","GRASP","GRASS","GREAT","GREEN","GREET","GRIEF","GRILL","GROSS","GROUP","GUARD","GUESS","GUEST","GUIDE","HABIT","HAPPY","HARSH","HEART","HEAVY","HONOR","HORSE","HOTEL","HOUSE","HUMAN","IDEAL","IMAGE","INDEX","INNER","INPUT","ISSUE","JEWEL","JOINT","JUDGE","JUICE","KNIFE","KNOCK","LABEL","LABOR","LARGE","LAUGH","LAYER","LEARN","LEAVE","LEGAL","LEMON","LEVEL","LIGHT","LIMIT","LOCAL","LOGIC","LUCKY","MAGIC","MAJOR","MARCH","MATCH","METAL","MODEL","MONEY","MONTH","MOTOR","MOUNT","MOUSE","MOUTH","MUSIC","NIGHT","NOISE","NORTH","NOVEL","NURSE","OCEAN","OFFER","ORDER","OTHER","PAINT","PANEL","PAPER","PARTY","PEACE","PHASE","PHONE","PHOTO","PIECE","PILOT","PITCH","PIZZA","PLACE","PLAIN","PLANE","PLANT","PLATE","POINT","POUND","POWER","PRESS","PRICE","PRIDE","PRIME","PRIZE","PROOF","PROUD","PULSE","PUPIL","QUEEN","QUICK","QUIET","RADIO","RAISE","RANGE","RAPID","RATIO","REACH","REACT","READY","RIVER","ROUGH","ROUND","ROUTE","ROYAL","RULER","SCALE","SCENE","SCOPE","SCORE","SERVE","SHARE","SHINE","SHIRT","SHOCK","SIGHT","SKILL","SMART","SMILE","SMOKE","SOLID","SOLVE","SOUND","SPACE","SPARK","SPEAK","SPEED","SPEND","SPORT","STAGE","STAND","START","STATE","STEAM","STEEL","STICK","STILL","STOCK","STONE","STORM","STORY","STUDY","STYLE","SUGAR","SWEET","TABLE","TASTE","TEACH","THEME","THING","TIGER","TITLE","TOOTH","TOTAL","TOUCH","TOWER","TRACK","TRADE","TRAIN","TREND","TRIAL","TRUCK","TRUTH","UNCLE","UNION","UNITY","UPPER","URBAN","USAGE","VALID","VALUE","VIDEO","VIRUS","VISIT","VOICE","WASTE","WATCH","WATER","WHEEL","WHERE","WHITE","WHOLE","WOMAN","WORLD","WORRY","WORTH","YOUTH","ZEBRA"];
+  const RAW_WORDS_7 = ["ACADEMY","ACHIEVE","ADDRESS","AIRPORT","ANALYZE","ANCIENT","BALANCE","BARRIER","BATTERY","BLANKET","CABINET","CALCIUM","CAPITAL","CAPTAIN","CENTURY","CHAMBER","CHANNEL","CHAPTER","CHARITY","CHARIOT","CLIMATE","COLLEGE","COMFORT","COMMAND","COMPANY","COMPLEX","CONCEPT","CONCERN","CONCERT","CONNECT","CONTEXT","CONTROL","CONVERT","COUNCIL","COUNTER","COURAGE","CULTURE","CURRENT","DEFENSE","DELIGHT","DESKTOP","DEVELOP","DIAMOND","DIGITAL","DISEASE","DYNAMIC","ECONOMY","ELEMENT","EMPEROR","EPISODE","EVENING","EXAMPLE","EXPENSE","FACTORY","FEATURE","FICTION","FINANCE","FOREVER","FORMULA","FORTUNE","FREEDOM","GALLERY","GATEWAY","GENERAL","GENUINE","GLORIOUS","HABITAT","HEALTHY","HEARING","HIGHWAY","HISTORY","HORIZON","HOSPITAL","HUNDRED","ICEBERG","IMAGINE","IMPROVE","IMPULSE","INITIAL","INSIGHT","INSTALL","INSTANT","INTEGER","JOURNEY","JUSTICE","KINGDOM","KITCHEN","LANTERN","LAUNDRY","LEADING","LEOPARD","LIBERTY","LIBRARY","MACHINE","MANAGER","MAXIMUM","MEASURE","MEDICAL","MESSAGE","MINIMUM","MISSION","MONSTER","MORNING","MYSTERY","NATURAL","NETWORK","NEUTRAL","NOTHING","NUCLEAR","OPINION","OUTCOME","PACKAGE","PALETTE","PASSAGE","PATIENT","PATTERN","PERFECT","PICTURE","PIONEER","PLASTIC","POPULAR","PREDICT","PREMIUM","PRIMARY","PRIVACY","PROBLEM","PROCESS","PRODUCT","PROFILE","PROGRAM","PROJECT","PROMISE","PROTECT","PURPOSE","QUALITY","QUARTER","RADICAL","REALITY","RECEIVE","RECOVER","REFLECT","RELEASE","REPLACE","REQUEST","REQUIRE","RESERVE","RESOLVE","RESPECT","RESTORE","REVENUE","REVERSE","ROMANCE","ROUTINE","SAVINGS","SCIENCE","SCRATCH","SECTION","SEGMENT","SERVANT","SERVICE","SHELTER","SILENCE","SOCIETY","SOLDIER","SPECIES","STATION","STORAGE","STRANGE","STUDENT","SUBJECT","SUCCESS","SUGGEST","SUPPORT","SUPREME","SURFACE","SURVIVE","SYMPTOM","TALENTED","TEACHER","TEXTURE","THEATRE","THOUGHT","TONIGHT","TRAFFIC","TROUBLE","TWILIGHT","UNIFORM","UNKNOWN","VARIETY","VEHICLE","VERSION","VICTORY","VILLAGE","VIRTUAL","VISITOR","WEATHER","WELCOME","WESTERN","WHISPER","WINNING","WITHOUT"];
+
+  const DICTS = { 3: new Set(RAW_WORDS_3), 5: new Set(RAW_WORDS_5), 7: new Set(RAW_WORDS_7) };
+
+  let wordLength = 5;
+  let wordSecret = "";
+  let wordRow = 0;
+  let wordMaxRows = 6;
+  let wordLives = 2;
+
+  function initWordie() {
+    wordLength = parseInt(document.getElementById("wordie-mode-select").value);
+    const activeDict = Array.from(DICTS[wordLength]);
+    wordSecret = activeDict[Math.floor(Math.random() * activeDict.length)];
+    wordRow = 0;
+    wordLives = player.startingLives;
+
+    updateWordieLivesDisplay();
+    document.getElementById("wordie-attempts").innerText = `Guesses: 0/${wordMaxRows}`;
+
+    const input = document.getElementById("word-input");
+    input.value = "";
+    input.maxLength = wordLength;
+    input.placeholder = `${wordLength}-Letter Word`;
+
+    const board = document.getElementById("wordie-board");
+    board.innerHTML = "";
+    for (let r = 0; r < wordMaxRows; r++) {
+      const row = document.createElement("div");
+      row.className = "wordie-row";
+      for (let c = 0; c < wordLength; c++) {
+        const t = document.createElement("div");
+        t.className = `tile ${wordLength === 7 ? 'small' : ''}`;
+        t.id = `tile-${r}-${c}`;
+        row.appendChild(t);
+      }
+      board.appendChild(row);
+    }
+  }
+
+  function updateWordieLivesDisplay() {
+    document.getElementById("wordie-lives").innerText = `❤️ Lives: ${"❤️ ".repeat(wordLives)}(${wordLives} left)`;
+  }
+
+  async function checkWordExists(word, length) {
+    if (DICTS[length].has(word)) return true;
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
+      if (res.ok) {
+        DICTS[length].add(word);
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  async function submitWordGuess() {
+    const input = document.getElementById("word-input");
+    const guess = input.value.trim().toUpperCase();
+
+    if (guess.length !== wordLength) {
+      alert(`Must be a ${wordLength}-letter word!`);
+      return;
+    }
+
+    const isValid = await checkWordExists(guess, wordLength);
+
+    if (!isValid) {
+      wordLives--;
+      if (wordLives > 0) {
+        updateWordieLivesDisplay();
+        alert(`❌ '${guess}' is an invalid word! ${wordLives} life remaining.`);
+      } else {
+        alert(`💀 Out of lives! '${guess}' was invalid. Restarting round with a new word.`);
+        initWordie();
+      }
+      input.value = "";
+      return;
+    }
+
+    const secretCounts = {};
+    for (let char of wordSecret) secretCounts[char] = (secretCounts[char] || 0) + 1;
+    const tileStatuses = new Array(wordLength).fill("absent");
+
+    for (let i = 0; i < wordLength; i++) {
+      const t = document.getElementById(`tile-${wordRow}-${i}`);
+      t.innerText = guess[i];
+      if (guess[i] === wordSecret[i]) {
+        tileStatuses[i] = "correct";
+        secretCounts[guess[i]]--;
+      }
+    }
+
+    for (let i = 0; i < wordLength; i++) {
+      if (tileStatuses[i] !== "correct" && secretCounts[guess[i]] > 0) {
+        tileStatuses[i] = "present";
+        secretCounts[guess[i]]--;
+      }
+    }
+
+    for (let i = 0; i < wordLength; i++) {
+      document.getElementById(`tile-${wordRow}-${i}`).classList.add(tileStatuses[i]);
+    }
+
+    wordRow++;
+    document.getElementById("wordie-attempts").innerText = `Guesses: ${wordRow}/${wordMaxRows}`;
+    input.value = "";
+
+    if (guess === wordSecret) {
+      const coinsReward = wordLength === 3 ? 20 : (wordLength === 5 ? 40 : 70);
+      const scoreReward = wordLength * 30;
+      player.coins += coinsReward;
+      player.score += scoreReward;
+      updateHeader();
+      alert(`🌟 Excellent! Word was ${wordSecret}!\n+${coinsReward} Coins | +${scoreReward} Score`);
+      initWordie();
+    } else if (wordRow === wordMaxRows) {
+      alert(`Game over! The secret word was: ${wordSecret}`);
+      initWordie();
+    }
+  }
+
+  document.getElementById("word-input").addEventListener("keyup", e => { if (e.key === "Enter") submitWordGuess(); });
+
+  // ---------------- SPEED CLICKER ENGINE ----------------
+  let clickCount = 0;
+  let timerDuration = 10, timerRemaining = 10;
+  let clickerActive = false, clickerFinished = false, clickerInterval = null, recordClicks = 0;
+
+  function resetClicker() {
+    clearInterval(clickerInterval);
+    clickerActive = false; clickerFinished = false; clickCount = 0;
+    timerDuration = parseInt(document.getElementById("timer-select").value) + player.clickExtraSeconds;
+    timerRemaining = timerDuration;
+    document.getElementById("click-number").innerText = "0";
+    document.getElementById("timer-disp").innerText = `${timerRemaining.toFixed(1)}s`;
+    document.getElementById("cps-disp").innerText = "0.0";
+    document.getElementById("click-prompt").innerText = "Click To Start!";
+    document.getElementById("clicker-msg").innerText = "";
+
+    let boosts = [];
+    if (player.clickMultiplier > 1) boosts.push(`${player.clickMultiplier}x Active`);
+    if (player.clickExtraSeconds > 0) boosts.push(`+${player.clickExtraSeconds}s Active`);
+    document.getElementById("clicker-boost-note").innerText = boosts.join(" | ");
+  }
+
+  function handleClick() {
+    if (clickerFinished) return;
+    playSound('hit');
+
+    if (!clickerActive) {
+      clickerActive = true;
+      document.getElementById("click-prompt").innerText = "TAP FAST!";
+      const startTime = Date.now();
+
+      clickerInterval = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        timerRemaining = Math.max(0, timerDuration - elapsed);
+        document.getElementById("timer-disp").innerText = `${timerRemaining.toFixed(1)}s`;
+        document.getElementById("cps-disp").innerText = elapsed > 0 ? (clickCount / elapsed).toFixed(1) : 0;
+
+        if (timerRemaining <= 0) finishClickerRound();
+      }, 50);
+    }
+
+    clickCount += player.clickMultiplier;
+    document.getElementById("click-number").innerText = clickCount;
+  }
+
+  function finishClickerRound() {
+    clearInterval(clickerInterval);
+    clickerActive = false; clickerFinished = true;
+    const finalCPS = (clickCount / timerDuration).toFixed(2);
+    document.getElementById("timer-disp").innerText = "0.0s";
+    document.getElementById("cps-disp").innerText = finalCPS;
+    document.getElementById("click-prompt").innerText = "Round Done!";
+
+    if (clickCount > recordClicks) {
+      recordClicks = clickCount;
+      document.getElementById("record-disp").innerText = recordClicks;
+    }
+
+    const rewardCoins = Math.floor(clickCount * 1.5);
+    const rewardScore = clickCount * 10;
+    player.coins += rewardCoins;
+    player.score += rewardScore;
+    player.clickMultiplier = 1;
+    player.clickExtraSeconds = 0;
+    updateHeader();
+
+    document.getElementById("clicker-boost-note").innerText = "";
+    document.getElementById("clicker-msg").innerText = `🔥 ${clickCount} clicks (${finalCPS} CPS). +${rewardCoins} Coins & +${rewardScore} Score!`;
+  }
+
+  // ---------------- NUMBER GUESSER ----------------
+  let secretNum = Math.floor(Math.random() * 50) + 1;
+  let numAttempts = 0;
+
+  function submitNumberGuess() {
+    const guess = parseInt(document.getElementById("num-guess-input").value);
+    const feedback = document.getElementById("num-feedback");
+    if (isNaN(guess) || guess < 1 || guess > 50) { alert("Enter a number between 1 and 50."); return; }
+    numAttempts++;
+    if (guess === secretNum) {
+      player.coins += 30;
+      player.score += Math.max(10, 100 - numAttempts * 10);
+      updateHeader();
+      alert(`🎉 You won! The secret number was ${secretNum}!`);
+      secretNum = Math.floor(Math.random() * 50) + 1;
+      numAttempts = 0;
+      feedback.innerText = "Game reset! Guess the new number.";
+    } else if (guess < secretNum) {
+      feedback.innerText = `📉 Too low! Try higher. (Attempt #${numAttempts})`;
+      feedback.style.color = "var(--blue)";
+    } else {
+      feedback.innerText = `📈 Too high! Try lower. (Attempt #${numAttempts})`;
+      feedback.style.color = "var(--red)";
+    }
+    document.getElementById("num-guess-input").value = "";
+  }
+
+  // ---------------- MEGA STORE LOGIC ----------------
+  function processStorePurchase(cost) {
+    if (player.secretUnlocked) return true;
+    if (player.coins < cost) { alert(`Not enough coins! You need ${cost} 🪙.`); return false; }
+    player.coins -= cost;
+    updateHeader();
+    return true;
+  }
+
+  function buyBreakoutPaddle(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.breakoutWidePaddle = true;
+    alert("🧱 Wide Paddle activated! Paddle will be wider in your next Breakout round.");
+  }
+
+  function buyBreakoutMultiBall(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.breakoutMultiBall = true;
+    alert("🧱 Multi-Ball Surge activated! You will start with 2 balls in your next Breakout round.");
+  }
+
+  function buyBreakoutSlowBall(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.breakoutSlowBall = true;
+    alert("🧱 Slow-Motion activated! Ball speed is reduced by 30% for your next Breakout round.");
+  }
+
+  function buySnakeGhost(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.snakeGhostActive = true;
+    alert("👻 Ghost Mode activated! You can phase through walls in your next Snake match.");
+  }
+
+  function buySnakeBoost(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.goldenAppleActive = true;
+    alert("✨ Golden Apple activated! Next apple in Snake awards +50 bonus coins!");
+  }
+
+  function buyWordieSuperClue(cost) {
+    if (!wordSecret) { alert("Start Wordie first!"); return; }
+    if (!processStorePurchase(cost)) return;
+    alert(`💡 Super Clue: Word starts with '${wordSecret[0]}' and ends with '${wordSecret[wordSecret.length - 1]}'!`);
+  }
+
+  function buyWordieClue(type, cost) {
+    if (!wordSecret) { alert("Start Wordie first!"); return; }
+    if (!processStorePurchase(cost)) return;
+    const randomIdx = Math.floor(Math.random() * wordSecret.length);
+    alert(`💡 Wordie Clue: Letter '${wordSecret[randomIdx]}' is in the word!`);
+  }
+
+  function buyWordieLife(cost) {
+    if (!processStorePurchase(cost)) return;
+    wordLives++;
+    updateWordieLivesDisplay();
+    alert(`❤️ Extra life added! You now have ${wordLives} lives.`);
+  }
+
+  function buyClickMultiplier(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.clickMultiplier = 2;
+    resetClicker();
+    alert("⚡ Double Tap Power-Up activated! Each click counts as 2 next round.");
+  }
+
+  function buyClickTimeBonus(cost) {
+    if (!processStorePurchase(cost)) return;
+    player.clickExtraSeconds += 3;
+    resetClicker();
+    alert("⏱️ Time Freeze activated! +3 bonus seconds added next Clicker round.");
+  }
+
+  function buyHint(type, cost) {
+    if (!processStorePurchase(cost)) return;
+    if (type === 'odd_even') {
+      alert(`💡 The secret number is ${secretNum % 2 === 0 ? "EVEN" : "ODD"}!`);
+    } else if (type === 'range') {
+      let low = Math.floor((secretNum - 1) / 10) * 10 + 1;
+      alert(`💡 The number is between ${low} and ${Math.min(50, low + 9)}!`);
+    }
+  }
+
+  // Initial setup runs
+  initWordie();
+  resetClicker();
+  updateHeader();
+  drawSnake();
+</script>
+</body>
+</html>
